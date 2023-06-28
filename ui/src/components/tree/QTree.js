@@ -651,13 +651,43 @@ export default createComponent({
       keyboard !== true && meta.selectable !== false && blur(meta.key)
       setExpanded(meta.key, !meta.expanded, node, meta)
     }
-
-    function onTickedClick (meta, state) {
+    // --- Original onTickedClick ---
+    // function onTickedClick (meta, state) {
+    //   if (meta.indeterminate === true) {
+    //     state = meta.indeterminateNextState
+    //   }
+    //   if (meta.strictTicking) {
+    //     setTicked([ meta.key ], state)
+    //   }
+    //   else if (meta.leafTicking) {
+    //     const keys = []
+    //     const travel = meta => {
+    //       if (meta.isParent) {
+    //         if (state !== true && meta.noTick !== true && meta.tickable === true) {
+    //           keys.push(meta.key)
+    //         }
+    //         if (meta.leafTicking === true) {
+    //           meta.children.forEach(travel)
+    //         }
+    //       }
+    //       else if (
+    //         meta.noTick !== true
+    //         && meta.tickable === true
+    //         && (meta.leafFilteredTicking !== true || meta.matchesFilter === true)
+    //       ) {
+    //         keys.push(meta.key)
+    //       }
+    //     }
+    //     travel(meta)
+    //     setTicked(keys, state)
+    //   }
+    // }
+    function onTickedClick(meta, state) {
       if (meta.indeterminate === true) {
         state = meta.indeterminateNextState
       }
       if (meta.strictTicking) {
-        setTicked([ meta.key ], state)
+        setTicked([meta.key], state)
       }
       else if (meta.leafTicking) {
         const keys = []
@@ -667,6 +697,11 @@ export default createComponent({
               keys.push(meta.key)
             }
             if (meta.leafTicking === true) {
+              keys.push(meta.key) // added this line
+              console.log('meta.key', meta.key);
+              console.log('meta.children', meta.children);
+
+              // Only original line below
               meta.children.forEach(travel)
             }
           }
@@ -675,7 +710,18 @@ export default createComponent({
             && meta.tickable === true
             && (meta.leafFilteredTicking !== true || meta.matchesFilter === true)
           ) {
+            // Only original line below
             keys.push(meta.key)
+
+            // added this block
+            console.log('meta from non parent', meta);
+            // if meta.parent.children keys are all includes in keys, then add parent key to keys
+            console.log('- meta.parent.children before if check', meta.parent.children);
+            if (meta.parent.children.every(child => child.ticked === true)) {
+              // this never runs because the last child that gets ticked doesnt get updated
+              // console.log("every parent child is in keys");
+              keys.push(meta.parent.key)
+            }
           }
         }
         travel(meta)
